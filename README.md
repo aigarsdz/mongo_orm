@@ -67,7 +67,7 @@ Next, add the following to the `shard.yml` file in your project and run `shards 
 # shard.yml
 dependencies:
   mongo_orm:
-    github: sam0x17/mongo_orm
+    github: aigarsdz/mongo_orm
 ```
 
 ## Establishing MongoDB Connection
