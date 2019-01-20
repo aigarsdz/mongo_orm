@@ -30,7 +30,7 @@ module Mongo::ORM::Querying
           fields["\{{name.id}}"] = true
           if \{{type.id}}.is_a? Mongo::ORM::EmbeddedDocument.class
             model.\{{name.id}} = \{{type.id}}.from_bson(bson["\{{name}}"])
-          else
+          elsif bson.has_key?("\{{name}}")
             model.\{{name.id}} = bson["\{{name}}"].as(Union(\{{type.id}} | Nil))
           end
           \{% if type.id == Time %}
@@ -112,13 +112,13 @@ module Mongo::ORM::Querying
   # find_by using symbol for field name.
   def find_by(field : Symbol, value)
     field = :_id if field == :id
-    find_by(field.to_s, value)  # find_by using symbol for field name.
+    find_by(field.to_s, value) # find_by using symbol for field name.
   end
 
   # find_by returns the first row found where the field maches the value
   def find_by(field : String, value)
     row = nil
-    collection.find({ field => value }, BSON.new, LibMongoC::QueryFlags::NONE, 0, 1) do |doc|
+    collection.find({field => value}, BSON.new, LibMongoC::QueryFlags::NONE, 0, 1) do |doc|
       row = from_bson(doc)
     end
     row
