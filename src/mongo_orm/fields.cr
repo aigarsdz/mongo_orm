@@ -21,7 +21,7 @@ module Mongo::ORM::Fields
     raise "can only embed classes inheriting from Mongo::ORM::EmbeddedDocument" unless {{decl.type}}.new.is_a?(Mongo::ORM::EmbeddedDocument)
   end
 
-  macro embeds_many(children_collection, class_name=nil)
+  macro embeds_many(children_collection, class_name = nil)
     {% children_class = class_name ? class_name.id : children_collection.id[0...-1].camelcase %}
     {% children_array_class = "Array(#{children_class})" %}
     @{{children_collection.id}} = [] of {{children_class}}
@@ -43,7 +43,17 @@ module Mongo::ORM::Fields
   macro __process_fields
     # Create the properties
     {% for name, type in FIELDS %}
-      property {{name.id}} : Union({{type.id}} | Nil)
+      getter {{name.id}} : Union({{type.id}} | Nil)
+      @{{name.id}}_changed = false
+
+      def {{name.id}}=(value : Union({{type.id}} | Nil))
+        @{{name.id}}_changed = true if value != @{{name.id}}
+        @{{name.id}} = value
+      end
+
+      def {{name.id}}_changed?
+        @{{name.id}}_changed
+      end
     {% end %}
     {% if SETTINGS[:timestamps] %}
       property created_at : Time?
@@ -151,7 +161,7 @@ module Mongo::ORM::Fields
               json.field %field, %value
             {% end %}
           {% end %}
-  
+
           {% if SETTINGS[:timestamps] %}
             json.field "created_at", created_at.to_s
             json.field "updated_at", updated_at.to_s
@@ -199,6 +209,12 @@ module Mongo::ORM::Fields
           {% end %}
         {% end %}
       end
+    end
+
+    private def reset_changes
+      {% for name, type in FIELDS %}
+        @{{name.id}}_changed = false
+      {% end %}
     end
   end
 end

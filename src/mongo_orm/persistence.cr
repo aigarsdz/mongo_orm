@@ -14,6 +14,7 @@ module Mongo::ORM::Persistence
           __run_before_update
           @updated_at = Time.now.to_utc
           @@collection.save(self)
+          reset_changes
           __run_after_update
         else
           __run_before_create
